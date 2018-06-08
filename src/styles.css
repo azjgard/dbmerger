@@ -1,0 +1,7 @@
+.database-info-container > div > div > span {
+  display: block;
+}
+
+.database-info-container .field {
+  margin-bottom: 30px;
+}
