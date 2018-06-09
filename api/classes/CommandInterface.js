@@ -28,7 +28,10 @@ class CommandInterface {
           connectionObject.privateKey = this.info.privateKey;
         }
 
-        ssh.connect(connectionObject).then(resolve);
+        ssh
+          .connect(connectionObject)
+          .then(resolve)
+          .catch(reject);
       } else {
         resolve();
       }

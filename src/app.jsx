@@ -15,6 +15,7 @@ export default class App extends React.Component {
     this.handleInputChange = this.handleInputChange.bind(this);
     this.updateLocalInterface = this.updateLocalInterface.bind(this);
     this.updateRemoteInterface = this.updateRemoteInterface.bind(this);
+    this.connectLocal = this.connectLocal.bind(this);
 
     this.state = {
       local: {
@@ -22,8 +23,9 @@ export default class App extends React.Component {
         name: '',
         username: '',
         password: '',
-        dbname: '',
-        dbpassword: '',
+        dbname: testCredentials.local.dbname,
+        dbusername: testCredentials.local.dbusername,
+        dbpassword: testCredentials.local.dbpassword,
         privateKey: '',
         hostConnected: 'connected',
         dbConnected: 'disconnected',
@@ -34,6 +36,7 @@ export default class App extends React.Component {
         username: testCredentials.remote.username,
         password: '',
         dbname: '',
+        dbusername: '',
         dbpassword: '',
         privateKey: testCredentials.remote.privateKey,
         hostConnected: 'disconnected',
@@ -53,90 +56,122 @@ export default class App extends React.Component {
     this.setState(newState);
   }
 
+  connectLocal() {
+    dbMergerApi.localInterface.updateInfo(this.state.local);
+    dbMergerApi.connectToDb('local', {
+      dbName: this.state.local.dbname,
+      dbUser: this.state.local.dbusername,
+      dbPass: this.state.local.dbpassword,
+    }).then(output => {
+      // TODO: this .then is never reached if the database isn't succesfully
+      // connected to.
+      const newState = JSON.parse(JSON.stringify(this.state));
+
+      if (Object.keys(dbMergerApi.localDb.tables).length > 0) {
+        newState.local.dbConnected = 'connected';
+        console.log(dbMergerApi.localDb.tables);
+      }
+      else {
+        console.log('its an error');
+        newState.local.dbConnected = 'error';
+      }
+      this.setState(newState);
+    })
+  }
+
   updateLocalInterface() {
     dbMergerApi.localInterface.updateInfo(this.state.local);
   }
+
   updateRemoteInterface() {
+    const newState = JSON.parse(JSON.stringify(this.state));
+
     dbMergerApi.remoteInterface.updateInfo(this.state.remote);
     dbMergerApi.remoteInterface.connect().then(output => {
       if (output.connection) {
-        const newState = JSON.parse(JSON.stringify(this.state));
         newState.remote.hostConnected = 'connected';
         this.setState(newState);
       }
+    }).catch(error => {
+        newState.remote.hostConnected = 'error';
+        this.setState(newState);
     });
   }
 
   render() {
     return (
       <div className="database-info-container">
-        <Form
-          title="Local Info"
-          action={this.updateLocalInterface}
-          buttonLabel="Test Connection">
-          <Field
-            label="Database Name"
-            dbref="local"
-            name="name"
-            value={this.state.local.name}
-            handler={this.handleInputChange}
+        <div>
+          <Form
+            title="Local Info"
+            action={this.connectLocal}
+            buttonLabel="Test Connection">
+            <Field
+              label="Database Name"
+              dbref="local"
+              name="dbname"
+              value={this.state.local.dbname}
+              handler={this.handleInputChange}
+            />
+            <Field
+              label="Database Username"
+              dbref="local"
+              name="dbusername"
+              value={this.state.local.dbusername}
+              handler={this.handleInputChange}
+            />
+            <Field
+              label="Database Password"
+              dbref="local"
+              name="dbpassword"
+              value={this.state.local.dbpassword}
+              handler={this.handleInputChange}
+            />
+          </Form>
+          <ConnectionIndicator
+            hostConnectedStatus={this.state.local.hostConnected}
+            dbConnectedStatus={this.state.local.dbConnected}
           />
-          <Field
-            label="Database Username"
-            dbref="local"
-            name="username"
-            value={this.state.local.username}
-            handler={this.handleInputChange}
+        </div>
+        <div>
+          <Form
+            title="Remote Info"
+            action={this.updateRemoteInterface}
+            buttonLabel="Test Connection">
+            <Field
+              label="Host"
+              dbref="remote"
+              name="host"
+              value={this.state.remote.host}
+              handler={this.handleInputChange}
+            />
+            <Field
+              label="Username"
+              dbref="remote"
+              name="username"
+              value={this.state.remote.username}
+              handler={this.handleInputChange}
+            />
+            <Field
+              label="Password (optional)"
+              dbref="remote"
+              name="password"
+              value={this.state.remote.password}
+              handler={this.handleInputChange}
+            />
+            <Field
+              label="Private Key (optional)"
+              dbref="remote"
+              name="privateKey"
+              value={this.state.remote.privateKey}
+              handler={this.handleInputChange}
+            />
+          </Form>
+          <ConnectionIndicator
+            hostConnectedStatus={this.state.remote.hostConnected}
+            dbConnectedStatus={this.state.remote.dbConnected}
           />
-          <Field
-            label="Database Password"
-            dbref="local"
-            name="password"
-            value={this.state.local.password}
-            handler={this.handleInputChange}
-          />
-        </Form>
-        <ConnectionIndicator 
-          hostConnectedStatus={this.state.local.hostConnected}
-          dbConnectedStatus={this.state.local.dbConnected}
-        />
-        <Form
-          title="Remote Info"
-          action={this.updateRemoteInterface}
-          buttonLabel="Test Connection">
-          <Field
-            label="Host"
-            dbref="remote"
-            name="host"
-            value={this.state.remote.host}
-            handler={this.handleInputChange}
-          />
-          <Field
-            label="Username"
-            dbref="remote"
-            name="username"
-            value={this.state.remote.username}
-            handler={this.handleInputChange}
-          />
-          <Field
-            label="Password (optional)"
-            dbref="remote"
-            name="password"
-            value={this.state.remote.password}
-            handler={this.handleInputChange}
-          />
-          <Field
-            label="Private Key (optional)"
-            dbref="remote"
-            name="privateKey"
-            value={this.state.remote.privateKey}
-            handler={this.handleInputChange}
-          />
-        </Form>
-        <ConnectionIndicator 
-          hostConnectedStatus={this.state.remote.hostConnected}
-          dbConnectedStatus={this.state.remote.dbConnected}
-        />
+        </div>
       </div>
     );
   }
