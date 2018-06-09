@@ -4,6 +4,9 @@ import dbMergerApi from '../api';
 // Components
 import Form from './components/Form';
 import Field from './components/Field';
+import ConnectionIndicator from './components/ConnectionIndicator';
+
+const testCredentials = require('../credentials');
 
 export default class App extends React.Component {
   constructor(props) {
@@ -16,17 +19,25 @@ export default class App extends React.Component {
     this.state = {
       local: {
         host: 'localhost',
-        name: 'hh',
+        name: '',
         username: '',
         password: '',
+        dbname: '',
+        dbpassword: '',
         privateKey: '',
+        hostConnected: 'connected',
+        dbConnected: 'disconnected',
       },
       remote: {
-        host: '',
-        name: 'hh',
-        username: '',
+        host: testCredentials.remote.host,
+        name: '',
+        username: testCredentials.remote.username,
         password: '',
-        privateKey: '',
+        dbname: '',
+        dbpassword: '',
+        privateKey: testCredentials.remote.privateKey,
+        hostConnected: 'disconnected',
+        dbConnected: 'disconnected',
       },
     };
   }
@@ -43,18 +54,24 @@ export default class App extends React.Component {
   }
 
   updateLocalInterface() {
-    dbMergerApi.localInterface.updateInfo(this.state.database.local);
+    dbMergerApi.localInterface.updateInfo(this.state.local);
   }
   updateRemoteInterface() {
-    dbMergerApi.remoteInterface.updateInfo(this.state.connection.remote);
-    dbMergerApi.remoteInterface.connect().then(console.log);
+    dbMergerApi.remoteInterface.updateInfo(this.state.remote);
+    dbMergerApi.remoteInterface.connect().then(output => {
+      if (output.connection) {
+        const newState = JSON.parse(JSON.stringify(this.state));
+        newState.remote.hostConnected = 'connected';
+        this.setState(newState);
+      }
+    });
   }
 
   render() {
     return (
       <div className="database-info-container">
         <Form
-          title="Local Database Info"
+          title="Local Info"
           action={this.updateLocalInterface}
           buttonLabel="Test Connection">
           <Field
@@ -79,8 +96,12 @@ export default class App extends React.Component {
             handler={this.handleInputChange}
           />
         </Form>
+        <ConnectionIndicator 
+          hostConnectedStatus={this.state.local.hostConnected}
+          dbConnectedStatus={this.state.local.dbConnected}
+        />
         <Form
-          title="Remote Database Info"
+          title="Remote Info"
           action={this.updateRemoteInterface}
           buttonLabel="Test Connection">
           <Field
@@ -91,14 +112,14 @@ export default class App extends React.Component {
             handler={this.handleInputChange}
           />
           <Field
-            label="Database Username"
+            label="Username"
             dbref="remote"
             name="username"
             value={this.state.remote.username}
             handler={this.handleInputChange}
           />
           <Field
-            label="Database Password"
+            label="Password (optional)"
             dbref="remote"
             name="password"
             value={this.state.remote.password}
@@ -112,6 +133,10 @@ export default class App extends React.Component {
             handler={this.handleInputChange}
           />
         </Form>
+        <ConnectionIndicator 
+          hostConnectedStatus={this.state.remote.hostConnected}
+          dbConnectedStatus={this.state.remote.dbConnected}
+        />
       </div>
     );
   }
