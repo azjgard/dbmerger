@@ -23,6 +23,7 @@ export default class App extends React.Component {
         dbpassword: testCredentials.local.dbpassword,
         hostConnected: 'connected',
         dbConnected: 'disconnected',
+        tables: [],
       },
       remote: {
         host: testCredentials.remote.host,
@@ -34,6 +35,7 @@ export default class App extends React.Component {
         privateKey: testCredentials.remote.privateKey,
         hostConnected: 'disconnected',
         dbConnected: 'disconnected',
+        tables: [],
       },
     };
   }
@@ -60,12 +62,15 @@ export default class App extends React.Component {
         dbUser: this.state.local.dbusername,
         dbPass: this.state.local.dbpassword,
       })
-      .then(output => {
+      .then(database => {
         newState.local.dbConnected = 'connected';
+        newState.local.tables = database.tables;
         this.setState(newState);
       })
       .catch(e => {
+        console.error(e);
         newState.local.dbConnected = 'error';
+        newState.local.tables = [];
         this.setState(newState);
       });
   }
@@ -84,6 +89,7 @@ export default class App extends React.Component {
         })
         .catch(error => {
           newState.remote.hostConnected = 'error';
+          newState.remote.tables = [];
           this.setState(newState);
         });
 
@@ -94,112 +100,138 @@ export default class App extends React.Component {
             dbUser: this.state.remote.dbusername,
             dbPass: this.state.remote.dbpassword,
           })
-          .then(output => {
+          .then(database => {
             newState.remote.dbConnected = 'connected';
+            newState.remote.tables = database.tables;
             this.setState(newState);
           })
           .catch(e => {
             newState.remote.dbConnected = 'error';
+            newState.remote.tables = [];
             this.setState(newState);
           });
       }
     });
   }
 
+  renderTables(dbref) {
+    const elements = [];
+    const tables = this.state[dbref].tables;
+
+    for (const tableName in tables) {
+      const key = `${dbref}-${tableName}`;
+      const table = tables[tableName];
+
+      elements.push(
+        <div className="table-selector" key={key}>
+          <input type="checkbox" name={tableName} /> <span>{tableName}</span>
+        </div>,
+      );
+    }
+
+    return <div className="table-selector-container">{elements}</div>;
+  }
+
   render() {
     return (
       <div className="database-info-container">
         <div>
-          <Form
-            title="Local Info"
-            action={this.connectLocal}
-            buttonLabel="Test Connection">
-            <Field
-              label="Database Name"
-              dbref="local"
-              name="dbname"
-              value={this.state.local.dbname}
-              handler={this.handleInputChange}
+          <div>
+            <Form
+              title="Local Info"
+              action={this.connectLocal}
+              buttonLabel="Test Connection">
+              <Field
+                label="Database Name"
+                dbref="local"
+                name="dbname"
+                value={this.state.local.dbname}
+                handler={this.handleInputChange}
+              />
+              <Field
+                label="Database Username"
+                dbref="local"
+                name="dbusername"
+                value={this.state.local.dbusername}
+                handler={this.handleInputChange}
+              />
+              <Field
+                label="Database Password"
+                dbref="local"
+                name="dbpassword"
+                value={this.state.local.dbpassword}
+                handler={this.handleInputChange}
+              />
+            </Form>
+            <ConnectionIndicator
+              hostConnectedStatus={this.state.local.hostConnected}
+              dbConnectedStatus={this.state.local.dbConnected}
             />
-            <Field
-              label="Database Username"
-              dbref="local"
-              name="dbusername"
-              value={this.state.local.dbusername}
-              handler={this.handleInputChange}
-            />
-            <Field
-              label="Database Password"
-              dbref="local"
-              name="dbpassword"
-              value={this.state.local.dbpassword}
-              handler={this.handleInputChange}
-            />
-          </Form>
-          <ConnectionIndicator
-            hostConnectedStatus={this.state.local.hostConnected}
-            dbConnectedStatus={this.state.local.dbConnected}
-          />
+          </div>
+          {this.renderTables('local')}
         </div>
         <div>
-          <Form
-            title="Remote Info"
-            action={this.connectRemote}
-            buttonLabel="Test Connection">
-            <Field
-              label="Database Name"
-              dbref="remote"
-              name="dbname"
-              value={this.state.remote.dbname}
-              handler={this.handleInputChange}
+          <div>
+            <Form
+              title="Remote Info"
+              action={this.connectRemote}
+              buttonLabel="Test Connection">
+              <Field
+                label="Database Name"
+                dbref="remote"
+                name="dbname"
+                value={this.state.remote.dbname}
+                handler={this.handleInputChange}
+              />
+              <Field
+                label="Database Username"
+                dbref="remote"
+                name="dbusername"
+                value={this.state.remote.dbusername}
+                handler={this.handleInputChange}
+              />
+              <Field
+                label="Database Password"
+                dbref="remote"
+                name="dbpassword"
+                value={this.state.remote.dbpassword}
+                handler={this.handleInputChange}
+              />
+              <Field
+                label="Host"
+                dbref="remote"
+                name="host"
+                value={this.state.remote.host}
+                handler={this.handleInputChange}
+              />
+              <Field
+                label="Username"
+                dbref="remote"
+                name="username"
+                value={this.state.remote.username}
+                handler={this.handleInputChange}
+              />
+              <Field
+                label="Password (optional)"
+                dbref="remote"
+                name="password"
+                value={this.state.remote.password}
+                handler={this.handleInputChange}
+              />
+              <Field
+                label="Private Key (optional)"
+                dbref="remote"
+                name="privateKey"
+                value={this.state.remote.privateKey}
+                handler={this.handleInputChange}
+              />
+            </Form>
+            <ConnectionIndicator
+              hostConnectedStatus={this.state.remote.hostConnected}
+              dbConnectedStatus={this.state.remote.dbConnected}
             />
-            <Field
-              label="Database Username"
-              dbref="remote"
-              name="dbusername"
-              value={this.state.remote.dbusername}
-              handler={this.handleInputChange}
-            />
-            <Field
-              label="Database Password"
-              dbref="remote"
-              name="dbpassword"
-              value={this.state.remote.dbpassword}
-              handler={this.handleInputChange}
-            />
-            <Field
-              label="Host"
-              dbref="remote"
-              name="host"
-              value={this.state.remote.host}
-              handler={this.handleInputChange}
-            />
-            <Field
-              label="Username"
-              dbref="remote"
-              name="username"
-              value={this.state.remote.username}
-              handler={this.handleInputChange}
-            />
-            <Field
-              label="Password (optional)"
-              dbref="remote"
-              name="password"
-              value={this.state.remote.password}
-              handler={this.handleInputChange}
-            />
-            <Field
-              label="Private Key (optional)"
-              dbref="remote"
-              name="privateKey"
-              value={this.state.remote.privateKey}
-              handler={this.handleInputChange}
-            />
-          </Form>
-          <ConnectionIndicator
-            hostConnectedStatus={this.state.remote.hostConnected}
-            dbConnectedStatus={this.state.remote.dbConnected}
-          />
+          </div>
+          {this.renderTables('remote')}
         </div>
       </div>
     );
