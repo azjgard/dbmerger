@@ -1,23 +1,9 @@
 import React from 'react';
-
 import dbMergerApi from '../api';
 
-class Field extends React.Component {
-  render() {
-    return (
-      <div className="field">
-        <span>{this.props.label}</span>
-        <input
-          type="text"
-          name={this.props.name}
-          value={this.props.value}
-          onChange={this.props.handler}
-          data-dbref={this.props.dbref}
-        />
-      </div>
-    );
-  }
-}
+// Components
+import Form from './components/Form';
+import Field from './components/Field';
 
 export default class App extends React.Component {
   constructor(props) {
@@ -80,8 +66,7 @@ export default class App extends React.Component {
   render() {
     return (
       <div className="database-info-container">
-        <div>
-          <h1>Local Database Info</h1>
+        <Form title="Local Database Info" action={this.updateLocalInterface} buttonLabel="Test Connection">
           <Field
             label="Database Name"
             dbref="local"
@@ -103,12 +88,8 @@ export default class App extends React.Component {
             value={this.state.database.local.password}
             handler={this.handleInputChange}
           />
-          <div>
-            <button onClick={this.updateLocalInterface}>Test Connection</button>
-          </div>
-        </div>
-        <div>
-          <h1>Remote Database Info</h1>
+        </Form>
+        <Form title="Remote Database Info">
           <Field
             label="Host"
             dbref="remote"
@@ -140,7 +121,7 @@ export default class App extends React.Component {
           <div>
             <button onClick={this.updateRemoteInterface}>Test Connection</button>
           </div>
-        </div>
+        </Form>
       </div>
     );
   }
