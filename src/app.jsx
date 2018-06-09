@@ -13,7 +13,6 @@ export default class App extends React.Component {
     super(props);
 
     this.handleInputChange = this.handleInputChange.bind(this);
-    this.updateLocalInterface = this.updateLocalInterface.bind(this);
     this.updateRemoteInterface = this.updateRemoteInterface.bind(this);
     this.connectLocal = this.connectLocal.bind(this);
 
