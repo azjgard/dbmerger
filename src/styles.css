@@ -1,5 +1,14 @@
-.database-info-container > div > div > span {
+.field > span {
   display: block;
+}
+
+.database-info-container {
+  display: flex;
+  justify-content: space-around;
+}
+
+.connection-indicator {
+  margin-top: 20px;
 }
 
 .database-info-container .field {
