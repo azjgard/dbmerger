@@ -14,33 +14,19 @@ export default class App extends React.Component {
     this.updateRemoteInterface = this.updateRemoteInterface.bind(this);
 
     this.state = {
-      connection: {
-        local: {
-          host: 'localhost',
-          username: '',
-          password: '',
-          privateKey: '',
-        },
-        remote: {
-          host: '',
-          username: '',
-          password: '',
-          privateKey: '',
-        },
+      local: {
+        host: 'localhost',
+        name: 'hh',
+        username: '',
+        password: '',
+        privateKey: '',
       },
-      database: {
-        local: {
-          name: '',
-          username: '',
-          password: '',
-        },
-        remote: {
-          host: '',
-          port: '',
-          name: '',
-          username: '',
-          password: '',
-        },
+      remote: {
+        host: '',
+        name: 'hh',
+        username: '',
+        password: '',
+        privateKey: '',
       },
     };
   }
@@ -48,11 +34,12 @@ export default class App extends React.Component {
   handleInputChange(e) {
     const name = e.target.name;
     const dbRef = e.target.dataset.dbref;
+    const value = e.target.value;
 
-    const stateClone = JSON.parse(JSON.stringify(this.state));
-    stateClone.connection[dbRef][name] = e.target.value;
+    const newState = JSON.parse(JSON.stringify(this.state));
+    newState[dbRef][name] = value;
 
-    this.setState(stateClone);
+    this.setState(newState);
   }
 
   updateLocalInterface() {
@@ -66,61 +53,64 @@ export default class App extends React.Component {
   render() {
     return (
       <div className="database-info-container">
-        <Form title="Local Database Info" action={this.updateLocalInterface} buttonLabel="Test Connection">
+        <Form
+          title="Local Database Info"
+          action={this.updateLocalInterface}
+          buttonLabel="Test Connection">
           <Field
             label="Database Name"
             dbref="local"
             name="name"
-            value={this.state.database.local.name}
+            value={this.state.local.name}
             handler={this.handleInputChange}
           />
           <Field
             label="Database Username"
             dbref="local"
             name="username"
-            value={this.state.database.local.username}
+            value={this.state.local.username}
             handler={this.handleInputChange}
           />
           <Field
             label="Database Password"
             dbref="local"
             name="password"
-            value={this.state.database.local.password}
+            value={this.state.local.password}
             handler={this.handleInputChange}
           />
         </Form>
-        <Form title="Remote Database Info">
+        <Form
+          title="Remote Database Info"
+          action={this.updateRemoteInterface}
+          buttonLabel="Test Connection">
           <Field
             label="Host"
             dbref="remote"
             name="host"
-            value={this.state.connection.remote.host}
+            value={this.state.remote.host}
             handler={this.handleInputChange}
           />
           <Field
             label="Database Username"
             dbref="remote"
             name="username"
-            value={this.state.connection.remote.username}
+            value={this.state.remote.username}
             handler={this.handleInputChange}
           />
           <Field
             label="Database Password"
             dbref="remote"
             name="password"
-            value={this.state.connection.remote.password}
+            value={this.state.remote.password}
             handler={this.handleInputChange}
           />
           <Field
             label="Private Key (optional)"
             dbref="remote"
             name="privateKey"
-            value={this.state.connection.remote.privateKey}
+            value={this.state.remote.privateKey}
             handler={this.handleInputChange}
           />
-          <div>
-            <button onClick={this.updateRemoteInterface}>Test Connection</button>
-          </div>
         </Form>
       </div>
     );
