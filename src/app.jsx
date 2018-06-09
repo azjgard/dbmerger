@@ -57,30 +57,21 @@ export default class App extends React.Component {
   }
 
   connectLocal() {
+    const newState = JSON.parse(JSON.stringify(this.state));
+
     dbMergerApi.localInterface.updateInfo(this.state.local);
+
     dbMergerApi.connectToDb('local', {
       dbName: this.state.local.dbname,
       dbUser: this.state.local.dbusername,
       dbPass: this.state.local.dbpassword,
     }).then(output => {
-      // TODO: this .then is never reached if the database isn't succesfully
-      // connected to.
-      const newState = JSON.parse(JSON.stringify(this.state));
-
-      if (Object.keys(dbMergerApi.localDb.tables).length > 0) {
-        newState.local.dbConnected = 'connected';
-        console.log(dbMergerApi.localDb.tables);
-      }
-      else {
-        console.log('its an error');
-        newState.local.dbConnected = 'error';
-      }
+      newState.local.dbConnected = 'connected';
+      this.setState(newState);
+    }).catch(e => {
+      newState.local.dbConnected = 'error';
       this.setState(newState);
     })
-  }
-
-  updateLocalInterface() {
-    dbMergerApi.localInterface.updateInfo(this.state.local);
   }
 
   updateRemoteInterface() {

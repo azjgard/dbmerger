@@ -13,8 +13,6 @@ class Application {
 
       const dbName = `${dbref}Db`;
 
-      console.log('dbName: ' + dbName);
-
       switch (dbref) {
         case 'local':
           dbInterface = this.localInterface;
@@ -24,9 +22,6 @@ class Application {
           break;
       }
 
-      console.log('dbInterface:');
-      console.log(dbInterface);
-
       this[dbName] = new Database(
         dbInterface,
         info.dbName,
@@ -34,19 +29,10 @@ class Application {
         info.dbPass,
       );
 
-      console.log(info);
-
-      console.log(info.dbName);
-      console.log(info.dbUser);
-      console.log(info.dbPass);
-
-      console.log('database');
-      console.log(this[dbName]);
-
-      const conn = await this[dbName].initTables();
-      console.log(conn);
-
-      resolve(conn);
+      this[dbName]
+        .initTables()
+        .then(resolve)
+        .catch(reject);
     });
   }
 
