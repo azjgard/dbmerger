@@ -13,30 +13,24 @@ export default class App extends React.Component {
     super(props);
 
     this.handleInputChange = this.handleInputChange.bind(this);
-    this.updateRemoteInterface = this.updateRemoteInterface.bind(this);
     this.connectLocal = this.connectLocal.bind(this);
+    this.connectRemote = this.connectRemote.bind(this);
 
     this.state = {
       local: {
-        host: 'localhost',
-        name: '',
-        username: '',
-        password: '',
         dbname: testCredentials.local.dbname,
         dbusername: testCredentials.local.dbusername,
         dbpassword: testCredentials.local.dbpassword,
-        privateKey: '',
         hostConnected: 'connected',
         dbConnected: 'disconnected',
       },
       remote: {
         host: testCredentials.remote.host,
-        name: '',
         username: testCredentials.remote.username,
         password: '',
-        dbname: '',
-        dbusername: '',
-        dbpassword: '',
+        dbname: testCredentials.remote.dbname,
+        dbusername: testCredentials.remote.dbusername,
+        dbpassword: testCredentials.remote.dbpassword,
         privateKey: testCredentials.remote.privateKey,
         hostConnected: 'disconnected',
         dbConnected: 'disconnected',
@@ -60,31 +54,55 @@ export default class App extends React.Component {
 
     dbMergerApi.localInterface.updateInfo(this.state.local);
 
-    dbMergerApi.connectToDb('local', {
-      dbName: this.state.local.dbname,
-      dbUser: this.state.local.dbusername,
-      dbPass: this.state.local.dbpassword,
-    }).then(output => {
-      newState.local.dbConnected = 'connected';
-      this.setState(newState);
-    }).catch(e => {
-      newState.local.dbConnected = 'error';
-      this.setState(newState);
-    })
+    dbMergerApi
+      .connectToDb('local', {
+        dbName: this.state.local.dbname,
+        dbUser: this.state.local.dbusername,
+        dbPass: this.state.local.dbpassword,
+      })
+      .then(output => {
+        newState.local.dbConnected = 'connected';
+        this.setState(newState);
+      })
+      .catch(e => {
+        newState.local.dbConnected = 'error';
+        this.setState(newState);
+      });
   }
 
-  updateRemoteInterface() {
-    const newState = JSON.parse(JSON.stringify(this.state));
+  connectRemote() {
+    return new Promise(async (resolve, reject) => {
+      const newState = JSON.parse(JSON.stringify(this.state));
 
-    dbMergerApi.remoteInterface.updateInfo(this.state.remote);
-    dbMergerApi.remoteInterface.connect().then(output => {
-      if (output.connection) {
-        newState.remote.hostConnected = 'connected';
-        this.setState(newState);
+      dbMergerApi.remoteInterface.updateInfo(this.state.remote);
+
+      await dbMergerApi.remoteInterface
+        .connect()
+        .then(output => {
+          newState.remote.hostConnected = 'connected';
+          this.setState(newState);
+        })
+        .catch(error => {
+          newState.remote.hostConnected = 'error';
+          this.setState(newState);
+        });
+
+      if (newState.remote.hostConnected === 'connected') {
+        dbMergerApi
+          .connectToDb('remote', {
+            dbName: this.state.remote.dbname,
+            dbUser: this.state.remote.dbusername,
+            dbPass: this.state.remote.dbpassword,
+          })
+          .then(output => {
+            newState.remote.dbConnected = 'connected';
+            this.setState(newState);
+          })
+          .catch(e => {
+            newState.remote.dbConnected = 'error';
+            this.setState(newState);
+          });
       }
-    }).catch(error => {
-        newState.remote.hostConnected = 'error';
-        this.setState(newState);
     });
   }
 
@@ -126,8 +144,29 @@ export default class App extends React.Component {
         <div>
           <Form
             title="Remote Info"
-            action={this.updateRemoteInterface}
+            action={this.connectRemote}
             buttonLabel="Test Connection">
+            <Field
+              label="Database Name"
+              dbref="remote"
+              name="dbname"
+              value={this.state.remote.dbname}
+              handler={this.handleInputChange}
+            />
+            <Field
+              label="Database Username"
+              dbref="remote"
+              name="dbusername"
+              value={this.state.remote.dbusername}
+              handler={this.handleInputChange}
+            />
+            <Field
+              label="Database Password"
+              dbref="remote"
+              name="dbpassword"
+              value={this.state.remote.dbpassword}
+              handler={this.handleInputChange}
+            />
             <Field
               label="Host"
               dbref="remote"
