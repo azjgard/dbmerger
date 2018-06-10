@@ -5,6 +5,7 @@ import dbMergerApi from '../api';
 import Form from './components/Form';
 import Field from './components/Field';
 import ConnectionIndicator from './components/ConnectionIndicator';
+import Modal from './components/Modal';
 
 const testCredentials = require('../credentials');
 
@@ -12,11 +13,18 @@ export default class App extends React.Component {
   constructor(props) {
     super(props);
 
-    this.handleInputChange = this.handleInputChange.bind(this);
+    this.showModal = this.showModal.bind(this);
+    this.hideModal = this.hideModal.bind(this);
+
     this.connectLocal = this.connectLocal.bind(this);
     this.connectRemote = this.connectRemote.bind(this);
 
+    this.modalHandler = this.modalHandler.bind(this);
+    this.handleInputChange = this.handleInputChange.bind(this);
+
     this.state = {
+      // modalChildren: [],
+      // modalVisibility: 'hidden',
       local: {
         dbname: testCredentials.local.dbname,
         dbusername: testCredentials.local.dbusername,
@@ -124,7 +132,10 @@ export default class App extends React.Component {
 
       elements.push(
         <div className="table-selector" key={key}>
-          <input type="checkbox" name={tableName} /> <span>{tableName}</span>
+          <input type="checkbox" name={tableName} onClick={() => {
+            console.log('clicked...');
+            this.modal(<p>hello</p>);
+          }} /> <span>{tableName}</span>
         </div>,
       );
     }
@@ -132,15 +143,48 @@ export default class App extends React.Component {
     return <div className="table-selector-container">{elements}</div>;
   }
 
+  // modal(children) {
+  //   return new Promise((resolve, reject) => {
+  //     const newState = JSON.parse(JSON.stringify(this.state));
+  //     this.showModal().then(() => { 
+  //       newState.modalChildren = children;
+  //       this.setState(newState, resolve)
+  //     });
+  //   })
+  // }
+
+  // showModal() {
+  //   return new Promise((resolve, reject) => {
+  //     const newState = JSON.parse(JSON.stringify(this.state));
+  //     newState.modelVisibility = "visible";
+  //     this.setState(newState, resolve);
+  //   })
+  // }
+
+  // hideModal() {
+  //   const newState = JSON.parse(JSON.stringify(this.state));
+  //   newState.modelVisibility = "hidden";
+  //   this.setState(newState);
+  // }
+
+  // modalHandler() {
+  //   return (
+  //     <Modal visibility={this.state.modalVisibility} close={this.hideModal}>
+  //       {this.state.modalChildren}
+  //     </Modal>
+  //   )
+  // }
+
   render() {
     return (
       <div className="database-info-container">
+        {//this.modalHandler()}
         <div>
           <div>
             <Form
               title="Local Info"
               action={this.connectLocal}
-              buttonLabel="Test Connection">
+              buttonLabel="Connect">
               <Field
                 label="Database Name"
                 dbref="local"
@@ -175,7 +219,7 @@ export default class App extends React.Component {
             <Form
               title="Remote Info"
               action={this.connectRemote}
-              buttonLabel="Test Connection">
+              buttonLabel="Connect">
               <Field
                 label="Database Name"
                 dbref="remote"
